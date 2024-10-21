@@ -1,0 +1,5 @@
+insert into Usuario (login,senha) values('admin','admin')
+insert into Livro (titulo,autor,status) values('A arte da guerra','Sun Tzu','Disponivel')
+insert into Livro (titulo,autor,status) values('Harry Potter e a Pedra Filosofal','J.K. Rowling','Disponivel')
+insert into Livro (titulo,autor,status) values('Neuromancer','William Gibson','Disponivel')
+insert into Livro (titulo,autor,status) values('Harry Potter e a Câmara Secreta','J.K. Rowling','Disponivel')
