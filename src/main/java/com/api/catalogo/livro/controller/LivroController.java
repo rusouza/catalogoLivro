@@ -5,14 +5,14 @@ import com.api.catalogo.livro.dto.LivroNotificacaoDTO;
 import com.api.catalogo.livro.entity.Livro;
 import com.api.catalogo.livro.entity.Usuario;
 import com.api.catalogo.livro.enums.StatusLivro;
-import com.api.catalogo.livro.service.LivroService;
 import com.api.catalogo.livro.messaging.NotificationService;
+import com.api.catalogo.livro.service.EmailService;
+import com.api.catalogo.livro.service.LivroService;
 import com.api.catalogo.livro.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +38,9 @@ public class LivroController {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private EmailService emailService;
+
     @Operation(summary = "Busca todos os livros cadastrados",
             responses = {
                 @ApiResponse(responseCode = "200", description = "Livros encontrados",
@@ -61,10 +64,6 @@ public class LivroController {
     }
 
     @Operation(summary = "Cadastrar novos livros",
-            requestBody = @RequestBody(description = "Dados do livro a ser cadastrado",
-                    required = true,
-                    content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = LivroDTO.class))),
             responses = {
                 @ApiResponse(responseCode = "201", description = "Livro cadastrado com sucesso",
                     content = @Content(mediaType = "application/json",
@@ -100,6 +99,9 @@ public class LivroController {
             livro.setUsuario(usuario);
             service.salvarOuAtualizar(livro);
             notificationService.sendNotificationALugado("Livro alugado: " + livro.getTitulo());
+
+            String emailBody = "Você alugou o livro: " + livro.getTitulo();
+            emailService.enviarEmail(usuario.getEmail(), "Confirmação de Aluguel", emailBody);
 
             return ResponseEntity.ok(livro.converterParaLivroAlugado());
         } else {

@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -51,10 +50,6 @@ public class UsuarioController {
     }
 
     @Operation(summary = "Cadastar os usuários",
-            requestBody = @RequestBody(description = "Dados do usuário a ser cadastrado",
-                required = true,
-                content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = UsuarioDTO.class))),
             responses = {
                 @ApiResponse(responseCode = "201", description = "Usuário cadastrado com sucesso",
                     content = @Content(mediaType = "application/json",
@@ -70,10 +65,6 @@ public class UsuarioController {
     }
 
     @Operation(summary = "Conectar na API",
-            requestBody = @RequestBody(description = "Credenciais do usuário para autenticação",
-                required = true,
-                content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = UsuarioDTO.class))),
             responses = {
                 @ApiResponse(responseCode = "200", description = "Usuário autenticado com sucesso",
                     content = @Content(mediaType = "application/json",

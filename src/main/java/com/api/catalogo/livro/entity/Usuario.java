@@ -16,16 +16,19 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
     private String login;
     private String senha;
 
-    public Usuario(String login, String senha) {
+    @Column(unique = true)
+    private String email;
+
+    public Usuario(String login, String senha, String email) {
         this.login = login;
         this.senha = senha;
+        this.email = email;
     }
 
     public UsuarioCadastradoDTO converterParaUsuarioCadastrado() {
-        return new UsuarioCadastradoDTO(login);
+        return new UsuarioCadastradoDTO(login, email);
     }
 }
