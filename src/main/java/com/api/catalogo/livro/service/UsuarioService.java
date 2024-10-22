@@ -1,6 +1,7 @@
 package com.api.catalogo.livro.service;
 
 import com.api.catalogo.livro.entity.Usuario;
+import com.api.catalogo.livro.error.UsuarioNotFoundException;
 import com.api.catalogo.livro.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -36,6 +37,11 @@ public class UsuarioService {
         isLoginExist(usuario);
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
         return repository.save(usuario);
+    }
+
+    public Usuario findByLogin(String login) {
+        Optional<Usuario> opUsuario = repository.findByLogin(login);
+        return opUsuario.orElseThrow(() -> new UsuarioNotFoundException(login));
     }
 
 }

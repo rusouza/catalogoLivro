@@ -3,9 +3,11 @@ package com.api.catalogo.livro.controller;
 import com.api.catalogo.livro.dto.LivroDTO;
 import com.api.catalogo.livro.dto.LivroNotificacaoDTO;
 import com.api.catalogo.livro.entity.Livro;
+import com.api.catalogo.livro.entity.Usuario;
 import com.api.catalogo.livro.enums.StatusLivro;
 import com.api.catalogo.livro.service.LivroService;
 import com.api.catalogo.livro.messaging.NotificationService;
+import com.api.catalogo.livro.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,6 +15,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,6 +25,9 @@ public class LivroController {
 
     @Autowired
     private LivroService service;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @Autowired
     private NotificationService notificationService;
@@ -52,9 +59,21 @@ public class LivroController {
     public ResponseEntity<?> alugarLivro(@PathVariable(name = "livroId") Long livroId) {
 
         Livro livro = service.findById(livroId);
-        livro.setStatus(StatusLivro.ALUGADO);
-        notificationService.sendNotificationALugado("Livro alugado: " + livro.getTitulo());
-        return ResponseEntity.ok(service.salvarOuAtualizar(livro));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        if(livro.getStatus().equals(StatusLivro.DISPONIVEL)) {
+            Usuario usuario = usuarioService.findByLogin(username);
+
+            livro.setStatus(StatusLivro.ALUGADO);
+            livro.setUsuario(usuario);
+            service.salvarOuAtualizar(livro);
+            notificationService.sendNotificationALugado("Livro alugado: " + livro.getTitulo());
+
+            return ResponseEntity.ok(livro.converterParaLivroAlugado());
+        } else {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Livro escolhido já está alugado");
+        }
     }
 
     @Operation(summary = "Devolver os livros")
@@ -62,13 +81,20 @@ public class LivroController {
     public ResponseEntity<?> devolverLivro(@PathVariable(name = "livroId") Long livroId) {
 
         Livro livro = service.findById(livroId);
-        if(livro.getStatus().equals(StatusLivro.ALUGADO)) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        if(livro.getUsuario().getLogin().equals(username)
+                && livro.getStatus().equals(StatusLivro.ALUGADO)) {
             livro.setStatus(StatusLivro.DEVOLVIDO);
+            livro.setUsuario(null);
+            service.salvarOuAtualizar(livro);
             LivroNotificacaoDTO notificacaoDTO = livro.converterParaLivroNotificacao("Livro devolvido: " + livro.getTitulo());
             notificationService.sendNotificationDevolvido(notificacaoDTO);
-            return ResponseEntity.ok(service.salvarOuAtualizar(livro));
+
+            return ResponseEntity.ok(livro.converterParaLivroAlugado());
         } else {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Livro escolhido não está alugado");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Não é possivel devolver o livro escolhido não está alugado");
         }
     }
 

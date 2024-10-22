@@ -1,13 +1,11 @@
 package com.api.catalogo.livro.entity;
 
+import com.api.catalogo.livro.dto.LivroAlugadoDTO;
 import com.api.catalogo.livro.dto.LivroNotificacaoDTO;
-import com.api.catalogo.livro.dto.UsuarioCadastradoDTO;
 import com.api.catalogo.livro.enums.StatusLivro;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Data
 @NoArgsConstructor
@@ -24,6 +22,10 @@ public class Livro {
     @Enumerated(EnumType.STRING)
     private StatusLivro status;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
+
     public Livro(String titulo, String autor, StatusLivro status) {
         this.titulo = titulo;
         this.autor = autor;
@@ -32,5 +34,9 @@ public class Livro {
 
     public LivroNotificacaoDTO converterParaLivroNotificacao(String mensagem) {
         return new LivroNotificacaoDTO(id, mensagem);
+    }
+
+    public LivroAlugadoDTO converterParaLivroAlugado() {
+        return new LivroAlugadoDTO(titulo, autor, status.name(), usuario.getLogin());
     }
 }
