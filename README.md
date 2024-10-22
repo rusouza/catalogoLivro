@@ -10,6 +10,8 @@ autenticados possam realizar ações no sistema.
 ## Pré-requisitos
 Antes de rodar o projeto, certifique-se de ter o seguinte instalado:
 - [Java 17](https://www.oracle.com/java/technologies/javase-jdk17-downloads.html)
+- [MailHog](https://github.com/mailhog/MailHog/releases)
+- [Apache Kafka](https://kafka.apache.org/downloads)
 
 ### Tecnologias Utilizadas
 
@@ -35,8 +37,8 @@ Antes de rodar o projeto, certifique-se de ter o seguinte instalado:
    
       ## DATASOURCE
       spring.datasource.url=jdbc:h2:mem:testdb;AUTO_RECONNECT=TRUE
-      spring.datasource.username=seu-usuario
-      spring.datasource.password=sua-senha
+      spring.datasource.username=usuario_do_banco
+      spring.datasource.password=senha_do_banco
       spring.datasource.driverClassName=org.h2.Driver
    
       ## JPA
@@ -57,41 +59,60 @@ Antes de rodar o projeto, certifique-se de ter o seguinte instalado:
       jwt.secret-key=sua-chavesecreta
       ## armazena o tempo (em milissegundos) que a sessão irá continuar ativa
       jwt.expiration-time=seu-tempo-em-milissegundos 
+      
+      ## Configurações de e-mail para o MailHog
+      spring.mail.host=localhost
+      spring.mail.port=1025
+      spring.mail.username=
+      spring.mail.password=
+      spring.mail.properties.mail.smtp.auth=false
+      spring.mail.properties.mail.smtp.starttls.enable=false
+      spring.mail.properties.mail.smtp.connectiontimeout=5000
+      spring.mail.properties.mail.smtp.timeout=5000
+      spring.mail.properties.mail.smtp.writetimeout=5000
       ```
    
-   3. Baixar e Rodar os consumidores Kafka
+   3. Rodar os consumidores Kafka
         
-      1. **Baixar a versão Binary do Kafka:**
+      1. ### **Instalação**
    
-         - Vai no site do [Apache Kafka](https://kafka.apache.org/downloads) e baixa a versão mais recente.
-         - Depois de baixar, extrai o arquivo.
+         - Após baixar, extrai o arquivo (Verificar se baixou a versão Binary do Kafka).
       
-      2. **Subir o Zookeeper:**
+      2. ### **Subir o Zookeeper:**
    
          - Antes de subir o Kafka, precisa rodar o Zookeeper, que ele usa pra gerenciar os brokers.
+         - Com o terminal aberto acesse a pasta que você extraiu o Kafka e execute o comando abaixo.
          ```bash
          .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
 
-      3. **Subir o Kafka:**
+      3. ### **Subir o Kafka:**
    
          - Com o Zookeeper rodando, agora sobe o Kafka:
+         - Abre um novo terminal e execute o comando abaixo.
          ```bash
          .\bin\windows\kafka-server-start.bat .\config\server.properties
 
-      4. **Verificar o tópico criado**
+      4. ### **Verificar o tópico criado**
          
          >O Apache Kafka está configurado para enviar notificações sempre que um livro é alugado ou devolvido.
          Essas mensagens podem ser visualizadas usando o consumidor Kafka.
 
-         - Aluguel:
+         #### Tópico de Aluguel:
             ```bash
            .\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic livro-alugado --from-beginning
             ```
-         - Devolução:
+         #### Tópico de Devolução:
             ```bash
             .\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic livro-devolvido --from-beginning
             ```
-        > **OBS:** Os comandos fornecidos acima são pra rodar no terminal do Windows (CMD ou PowerShell).
+         > **OBS:** Os comandos fornecidos acima são pra rodar no terminal do Windows (CMD ou PowerShell).
+   
+   4. Rodar o MailHog
+        - Após baixar o arquivo exe, execute e o mesmo estará disponivel: `http://localhost:8025/`
+
+### Start da Aplicação
+
+Após terminar as configurações starte a aplicação numa ide de sua preferência.
 
 ### Endpoints Disponíveis:
 

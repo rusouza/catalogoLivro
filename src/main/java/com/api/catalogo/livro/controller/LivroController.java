@@ -98,10 +98,10 @@ public class LivroController {
             livro.setStatus(StatusLivro.ALUGADO);
             livro.setUsuario(usuario);
             service.salvarOuAtualizar(livro);
-            notificationService.sendNotificationALugado("Livro alugado: " + livro.getTitulo());
 
             String emailBody = "Você alugou o livro: " + livro.getTitulo();
             emailService.enviarEmail(usuario.getEmail(), "Confirmação de Aluguel", emailBody);
+            notificationService.sendNotificationALugado("Livro alugado: " + livro.getTitulo());
 
             return ResponseEntity.ok(livro.converterParaLivroAlugado());
         } else {
