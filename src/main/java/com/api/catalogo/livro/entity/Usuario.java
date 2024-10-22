@@ -1,9 +1,7 @@
 package com.api.catalogo.livro.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.api.catalogo.livro.dto.UsuarioCadastradoDTO;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,6 +15,17 @@ public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String user;
+
+    @Column(unique = true)
+    private String login;
     private String senha;
+
+    public Usuario(String login, String senha) {
+        this.login = login;
+        this.senha = senha;
+    }
+
+    public UsuarioCadastradoDTO converterParaUsuarioCadastrado() {
+        return new UsuarioCadastradoDTO(login);
+    }
 }
