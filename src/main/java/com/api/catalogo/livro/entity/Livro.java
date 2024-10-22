@@ -1,6 +1,7 @@
 package com.api.catalogo.livro.entity;
 
 import com.api.catalogo.livro.dto.LivroAlugadoDTO;
+import com.api.catalogo.livro.dto.LivroDTO;
 import com.api.catalogo.livro.dto.LivroNotificacaoDTO;
 import com.api.catalogo.livro.enums.StatusLivro;
 import jakarta.persistence.*;
@@ -40,5 +41,9 @@ public class Livro {
 
     public LivroAlugadoDTO converterParaLivroAlugado() {
         return new LivroAlugadoDTO(titulo, autor, status.name(), usuario.getLogin());
+    }
+
+    public LivroDTO converterParaLivroDevolvido() {
+        return new LivroDTO(titulo, autor, status.name());
     }
 }

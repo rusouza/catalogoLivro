@@ -125,7 +125,7 @@ public class LivroController {
         Livro livro = service.findById(livroId);
         String username = getAuthenticatedUsername();
 
-        if(livro.getUsuario().getLogin().equals(username)
+        if(livro.getUsuario() != null && livro.getUsuario().getLogin().equals(username)
                 && livro.getStatus().equals(StatusLivro.ALUGADO)) {
             livro.setStatus(StatusLivro.DEVOLVIDO);
             livro.setUsuario(null);
@@ -133,7 +133,7 @@ public class LivroController {
             LivroNotificacaoDTO notificacaoDTO = livro.converterParaLivroNotificacao("Livro devolvido: " + livro.getTitulo());
             notificationService.sendNotificationDevolvido(notificacaoDTO);
 
-            return ResponseEntity.ok(livro.converterParaLivroAlugado());
+            return ResponseEntity.ok(livro.converterParaLivroDevolvido());
         } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Não é possivel devolver o livro escolhido");
         }
