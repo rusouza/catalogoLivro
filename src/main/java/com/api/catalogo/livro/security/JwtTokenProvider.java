@@ -19,10 +19,10 @@ import java.util.function.Function;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${security.jwt.secret-key}")
+    @Value("${jwt.secret-key}")
     private String jwtSecret;
 
-    @Value("${security.jwt.expiration-time}")
+    @Value("${jwt.expiration-time}")
     private long jwtExpirationDate;
 
     private Key key(){

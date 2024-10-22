@@ -9,6 +9,12 @@ import com.api.catalogo.livro.service.LivroService;
 import com.api.catalogo.livro.messaging.NotificationService;
 import com.api.catalogo.livro.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +38,14 @@ public class LivroController {
     @Autowired
     private NotificationService notificationService;
 
-    @Operation(summary = "Busca todos os livros cadastrados")
+    @Operation(summary = "Busca todos os livros cadastrados",
+            responses = {
+                @ApiResponse(responseCode = "200", description = "Livros encontrados",
+                content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = Livro.class))),
+                @ApiResponse(responseCode = "404", description = "Nenhum livro encontrado")
+            }
+    )
     @GetMapping
     public ResponseEntity<Page<Livro>> findAll(@RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "5") int size) {
@@ -41,26 +54,44 @@ public class LivroController {
         return ResponseEntity.status(HttpStatus.OK).body(LivroPage);
     }
 
-    @Operation(summary = "Busca o livro pelo nome")
+    @Operation(summary = "Buscar livro pelo nome")
     @GetMapping(path = "findByTitulo/{nome}")
     public ResponseEntity<?> findEstudanteByTitulo(@PathVariable String nome){
         return ResponseEntity.status(HttpStatus.OK).body(service.findByTitulo(nome));
     }
 
-    @Operation(summary = "Cadastrar novos livros")
+    @Operation(summary = "Cadastrar novos livros",
+            requestBody = @RequestBody(description = "Dados do livro a ser cadastrado",
+                    required = true,
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = LivroDTO.class))),
+            responses = {
+                @ApiResponse(responseCode = "201", description = "Livro cadastrado com sucesso",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = Livro.class)))
+            }
+    )
     @PostMapping(path = "incluir/livros")
-    public ResponseEntity<Livro> insert(@RequestBody LivroDTO dto) {
+    public ResponseEntity<Livro> insert(@Valid @RequestBody LivroDTO dto) {
         Livro livro = dto.converterParaLivro();
         return ResponseEntity.status(HttpStatus.CREATED).body(service.salvarOuAtualizar(livro));
     }
 
-    @Operation(summary = "Alugar os livros")
+    @Operation(summary = "Alugar os livros",
+            parameters = @Parameter(name = "livroId", description = "ID do livro a ser alugado", required = true),
+            responses = {
+                @ApiResponse(responseCode = "200", description = "Livro alugado com sucesso",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = Livro.class))),
+                @ApiResponse(responseCode = "403", description = "Livro já está alugado"),
+                @ApiResponse(responseCode = "404", description = "Livro não encontrado")
+            }
+    )
     @PutMapping(path = "alugar/{livroId}")
     public ResponseEntity<?> alugarLivro(@PathVariable(name = "livroId") Long livroId) {
 
         Livro livro = service.findById(livroId);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
+        String username = getAuthenticatedUsername();
 
         if(livro.getStatus().equals(StatusLivro.DISPONIVEL)) {
             Usuario usuario = usuarioService.findByLogin(username);
@@ -72,17 +103,25 @@ public class LivroController {
 
             return ResponseEntity.ok(livro.converterParaLivroAlugado());
         } else {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Livro escolhido já está alugado");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Livro escolhido já está alugado");
         }
     }
 
-    @Operation(summary = "Devolver os livros")
+    @Operation(summary = "Devolver os livros",
+            parameters = @Parameter(name = "livroId", description = "ID do livro a ser devolvido", required = true),
+            responses = {
+                @ApiResponse(responseCode = "200", description = "Livro devolvido com sucesso",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = Livro.class))),
+                @ApiResponse(responseCode = "403", description = "Não é possível devolver o livro escolhido"),
+                @ApiResponse(responseCode = "404", description = "Livro não encontrado")
+            }
+    )
     @PutMapping(path = "devolver/{livroId}")
     public ResponseEntity<?> devolverLivro(@PathVariable(name = "livroId") Long livroId) {
 
         Livro livro = service.findById(livroId);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
+        String username = getAuthenticatedUsername();
 
         if(livro.getUsuario().getLogin().equals(username)
                 && livro.getStatus().equals(StatusLivro.ALUGADO)) {
@@ -94,14 +133,25 @@ public class LivroController {
 
             return ResponseEntity.ok(livro.converterParaLivroAlugado());
         } else {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Não é possivel devolver o livro escolhido não está alugado");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Não é possivel devolver o livro escolhido");
         }
     }
 
-    @Operation(summary = "Deletar os livros por ID")
+    @Operation(summary = "Deletar os livros por ID",
+            parameters = @Parameter(name = "id", description = "ID do livro a ser excluído", required = true),
+            responses = {
+                @ApiResponse(responseCode = "200", description = "Livro excluído com sucesso"),
+                @ApiResponse(responseCode = "404", description = "Livro não encontrado")
+            }
+    )
     @DeleteMapping(path = "deletar/livros/{id}")
     public ResponseEntity<Object> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.ok("Livro Excluído com sucesso!");
+    }
+
+    private String getAuthenticatedUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication.getName();
     }
 }
