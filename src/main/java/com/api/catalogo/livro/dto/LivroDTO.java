@@ -1,5 +1,6 @@
 package com.api.catalogo.livro.dto;
 
+import com.api.catalogo.livro.entity.Livro;
 import com.api.catalogo.livro.enums.StatusLivro;
 import lombok.Data;
 
@@ -8,5 +9,9 @@ public class LivroDTO {
 
     private String titulo;
     private String autor;
-    private StatusLivro status;
+    private String status;
+
+    public Livro converterParaLivro(){
+        return new Livro(titulo, autor, StatusLivro.getStatus(status));
+    }
 }
