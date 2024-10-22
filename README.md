@@ -53,12 +53,14 @@ Antes de rodar o projeto, certifique-se de ter o seguinte instalado:
       kafka.bootstrap-servers=localhost:9092
    
       ## JWT
+      ## armazena o hash que vai ser usado para gerar o código para autenticar a sessão
       jwt.secret-key=sua-chavesecreta
-      jwt.expiration-time=seu-tempo-em-milissegundos
+      ## armazena o tempo (em milissegundos) que a sessão irá continuar ativa
+      jwt.expiration-time=seu-tempo-em-milissegundos 
       ```
    
    3. Baixar e Rodar os consumidores Kafka
-
+        
       1. **Baixar a versão Binary do Kafka:**
    
          - Vai no site do [Apache Kafka](https://kafka.apache.org/downloads) e baixa a versão mais recente.
@@ -89,6 +91,7 @@ Antes de rodar o projeto, certifique-se de ter o seguinte instalado:
             ```bash
             .\bin\windows\kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic livro-devolvido --from-beginning
             ```
+        > **OBS:** Os comandos fornecidos acima são pra rodar no terminal do Windows (CMD ou PowerShell).
 
 ### Endpoints Disponíveis:
 
